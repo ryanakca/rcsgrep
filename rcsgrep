@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+# Determines the deltas in which a particular pattern occurs
+# Copyright (C) 2011 Ryan Kavanagh <ryanakca@kubuntu.org>
+
+from   optparse import IndentedHelpFormatter, OptionParser
+import sys
+from   textwrap import dedent, fill
+
+from rcsfile import RCSFile
+
+class RCSGrepIndentFormatter(IndentedHelpFormatter):
+    def format_epilog(self, epilog):
+        if epilog:
+            epilog = dedent(epilog)
+            epilog = epilog.split('\n')
+            epilog = map(lambda x: " "*2 + x, epilog)
+            return "\n".join(epilog) + "\n"
+        else:
+            return ""
+
+if __name__ == '__main__':
+    epilog = """
+        [FORMATTING LEGEND]
+        r ::= revision
+        l ::= line number
+        L ::= matching line
+        a ::= line's author
+        d ::= line's date
+        D ::= line's date in ISO8601 format: YYYY-MM-DDThh:mm:ssZ
+        t ::= line's tags
+        f ::= filename"""
+    parser = OptionParser("usage: %prog [OPTIONS] pattern file1 " +
+                          "[file2 [ ... [filen]]]", epilog=epilog,
+                          formatter=RCSGrepIndentFormatter())
+    parser.add_option("-f", "--format", dest="format",
+            default='rlL',
+            help="Output tuple format (string). Default is rlL.")
+    parser.add_option("-s", "--sep", dest="sep", default=None,
+            help="Join fields with sep instead of outputting tuple")
+    parser.add_option("-w", "--linewraps", dest="linewraps",
+            default=False, action="store_true",
+            help="Follow linewraps")
+    (options, args) = parser.parse_args()
+    if not args:
+        sys.exit(parser.print_help())
+    pattern = args[0]
+    for filename in args[1:]:
+        f = RCSFile(file=filename)
+        for match in f.grep(pattern, format=options.format,
+                            wraplines=options.linewraps):
+            if options.sep:
+                print options.sep.join(map(str, match))
+            else:
+                print match
