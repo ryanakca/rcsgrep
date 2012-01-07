@@ -228,6 +228,10 @@ class RCSFile:
         """ Returns the date associated with deltanum. """
         return self._deltas[deltanum]['date']
 
+    def get_message(self, deltanum):
+        """ Returns the commit message associated with deltanum. """
+        return self._deltatexts[deltanum]['log']
+
     def grep(self, pattern, format="rlL", wraplines=False):
         """
         By default, outputs a list of
@@ -242,6 +246,7 @@ class RCSFile:
             D ::= line's date in ISO8601 format: YYYY-MM-DDThh:mm:ssZ
             t ::= line's tags
             f ::= filename
+            m ::= commit message
 
         Approach is as follows:
 
@@ -449,6 +454,8 @@ class RCSFile:
                         formatted_match.append(self.get_tags(match[0]))
                     elif attr == 'f':
                         formatted_match.append(self._filename)
+                    elif attr == 'm':
+                        formatted_match.append(self.get_message(match[0]))
                     else:
                         raise ValueError("Unknown formatting " +
                                 "option %s." % attr)
